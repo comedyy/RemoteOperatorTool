@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -32,7 +33,7 @@ public class NetWorkClient
 
     public async Task StartReceiving()
     {
-        Debug.Log("begin Receive");
+        Debug.Log("begin Receive" + " threadid: " + Thread.CurrentThread.ManagedThreadId);
 
         try
         {
@@ -66,30 +67,39 @@ public class NetWorkClient
 
     private void ProcessMsg()
     {
-        byte[] bytes = GenMsg(_bytes, _byte_index);
-        if (bytes != null)
+        while (true)
         {
-            _byte_index -= bytes.Length;
-            lock (_receive_list)
+            byte[] bytes = GenMsg(_bytes, _byte_index);
+            if (bytes != null)
             {
-                _receive_list.Enqueue(bytes);
+                Array.Copy(_bytes, bytes.Length, _bytes, 0, _byte_index - bytes.Length);
+                _byte_index -= bytes.Length;
+
+                lock (_receive_list)
+                {
+                    _receive_list.Enqueue(bytes);
+                }
+            }
+            else
+            {
+                break;
             }
         }
     }
 
     private byte[] GenMsg(byte[] bytes, int index)
     {
-        short msg_head = BitConverter.ToInt16(bytes, 0);
+        int msg_head = BitConverter.ToInt32(bytes, 0);
         if (msg_head <= index)
         {
             byte[] msg = new byte[msg_head];
-            Array.Copy(bytes, msg, msg_head);
-            Array.Copy(bytes, msg_head, bytes, 0, bytes.Length - msg_head);
+            Array.Copy(bytes, 0, msg, 0, msg_head);
             return msg;
         }
 
         return null;
     }
+
 
     public byte[] DequeueOne()
     {

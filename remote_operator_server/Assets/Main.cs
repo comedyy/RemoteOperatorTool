@@ -110,5 +110,17 @@ public class Main : MonoBehaviour
         msg.list = new List<Node>() { list_node[list_node.Count - 1] };
 
         _server.SendMsg(msg.ToBytes());
+        Debug.Log("send msg; node = " + GetFullPath(msg.list[0]));
+    }
+
+    static string GetFullPath(Node node)
+    {
+        string path = node.name;
+        if (node.list != null && node.list.Count > 0)
+        {
+            path = path + "/" + GetFullPath(node.list[0]);
+        }
+
+        return path;
     }
 }

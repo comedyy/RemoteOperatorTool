@@ -49,44 +49,47 @@ public class Msg
     public byte[] ToBytes()
     {
         MemoryStream stream = new MemoryStream();
-        BinaryWriter writer = new BinaryWriter(stream);
-
-        writer.Write(0); // size
-        writer.Write(msg_type);
-        writer.Write(sceneName);
-
-        int list_count = list != null ? list.Count : 0;
-        writer.Write(list_count);
-        for (int i = 0; i < list_count; i++)
+        using (BinaryWriter writer = new BinaryWriter(stream))
         {
-            list[i].AddBytes(writer);
+            writer.Write(0); // size
+            writer.Write(msg_type);
+            writer.Write(sceneName);
+
+            int list_count = list != null ? list.Count : 0;
+            writer.Write(list_count);
+            for (int i = 0; i < list_count; i++)
+            {
+                list[i].AddBytes(writer);
+            }
+
+            writer.Seek(0, SeekOrigin.Begin);
+            writer.Write((short)stream.Length);
+
+            return stream.ToArray();
         }
-
-        writer.Seek(0, SeekOrigin.Begin);
-        writer.Write((short)stream.Length);
-
-        return stream.ToArray();
     }
 
     public static Msg GenFromBytes(byte[] bytes)
     {
         MemoryStream stream = new MemoryStream(bytes);
-        BinaryReader reader = new BinaryReader(stream);
-
-        Msg msg = new Msg();
-        reader.ReadInt32();
-        msg.msg_type = reader.ReadInt16();
-        msg.sceneName = reader.ReadString();
-
-
-        int list_count = reader.ReadInt32();
-        msg.list = new List<Node>();
-        for (int i = 0; i < list_count; i++)
+        using (BinaryReader reader = new BinaryReader(stream))
         {
-            msg.list.Add(Node.GenFromBytes(reader));
-        }
 
-        return msg;
+            Msg msg = new Msg();
+            reader.ReadInt32();
+            msg.msg_type = reader.ReadInt16();
+            msg.sceneName = reader.ReadString();
+
+
+            int list_count = reader.ReadInt32();
+            msg.list = new List<Node>();
+            for (int i = 0; i < list_count; i++)
+            {
+                msg.list.Add(Node.GenFromBytes(reader));
+            }
+
+            return msg;
+        }
     }
 }
 

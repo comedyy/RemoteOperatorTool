@@ -22,8 +22,8 @@ public class DumpObj : MonoBehaviour
             return;
         }
 
-        GameObject activeObjs = Selection.activeGameObject;
-        if (activeObjs == gameObject)
+        GameObject[] activeObjs = Selection.gameObjects;
+        if (activeObjs.ToList().Contains(gameObject))
         {
             if (_on_state_change != null && _active != gameObject.activeSelf)
             {

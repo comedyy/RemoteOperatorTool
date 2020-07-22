@@ -29,21 +29,7 @@ public class RemoteOperateClient : MonoBehaviour
         {
             Msg msg = Msg.GenFromBytes(bytes);
 
-            //Debug.Log(msg.sceneName);
-            //Debug.Log(msg.msg_type);
-            //Debug.Log(msg.list.Count);
-            //Debug.Log(msg.list[0].name);
-            //Debug.Log(msg.list[0].list.Count);
-            //Debug.Log(msg.list[0].active);
-
-            //Debug.Log(msg.list[0].list[0].name);
-            //Debug.Log(msg.list[0].list[0].active);
-
-            //Debug.Log(msg.list[1].name);
-            //Debug.Log(msg.list[1].active);
-
-            //Debug.Log(msg.list[2].name);
-            //Debug.Log(msg.list[2].active);
+            Debug.Log("receive msg; node = " + GetFullPath(msg.list[0]));
 
             Scene scene = SceneManager.GetActiveScene();
             foreach (var item in msg.list)
@@ -55,10 +41,21 @@ public class RemoteOperateClient : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogErrorFormat("obj not exist {0}", item.name);
+                    Debug.LogErrorFormat("obj not exist {0}", GetFullPath(item));
                 }
             }
         }
+    }
+
+    static string GetFullPath(Node node)
+    {
+        string path = node.name;
+        if (node.list != null && node.list.Count > 0)
+        {
+            path = path + "/" + GetFullPath(node.list[0]);
+        }
+
+        return path;
     }
 
     void SetNode(Transform t, Node msg)
