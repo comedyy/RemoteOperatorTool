@@ -82,14 +82,29 @@ public class RemoteOperateClient : MonoBehaviour
         t.gameObject.SetActive(msg.active);
         foreach (var item in msg.list)
         {
-            Transform trans = t.Find(item.name);
-            if (trans)
+            if (item.is_component)
             {
-                SetNode(trans, item);
+                Behaviour behavior = (Behaviour)t.GetComponent(item.name);
+                if (behavior)
+                {
+                    behavior.enabled = item.active;
+                }
+                else
+                {
+                    Debug.LogErrorFormat("obj not exist {0}", item.name);
+                }
             }
             else
             {
-                Debug.LogErrorFormat("obj not exist {0}", trans.name);
+                Transform trans = t.Find(item.name);
+                if (trans)
+                {
+                    SetNode(trans, item);
+                }
+                else
+                {
+                    Debug.LogErrorFormat("obj not exist {0}", item.name);
+                }
             }
         }
     }
@@ -162,6 +177,19 @@ public class RemoteOperateClient : MonoBehaviour
         for (int i = 0; i < item.transform.childCount; i++)
         {
             node.list.Add(GenNode(item.transform.GetChild(i)));
+        }
+
+        Behaviour[] comps = item.GetComponents<Behaviour>();
+        foreach (var comp in comps)
+        {
+            Node node_comp = new Node()
+            {
+                is_component = true,
+                active = comp.enabled,
+                name = comp.GetType().Name
+            };
+
+            node.list.Add(node_comp);
         }
 
         return node;

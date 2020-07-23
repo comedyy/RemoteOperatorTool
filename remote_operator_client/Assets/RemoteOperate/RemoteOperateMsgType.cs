@@ -8,11 +8,13 @@ public class Node
     public string name;
     public bool active;
     public List<Node> list;
+    public bool is_component;
 
     public void AddBytes(BinaryWriter writer)
     {
         writer.Write(name);
         writer.Write(active);
+        writer.Write(is_component);
 
         int list_count = list != null ? list.Count : 0;
         writer.Write(list_count);
@@ -27,6 +29,7 @@ public class Node
         Node node = new Node();
         node.name = reader.ReadString();
         node.active = reader.ReadBoolean();
+        node.is_component = reader.ReadBoolean();
 
         int list_count = reader.ReadInt32();
         node.list = new List<Node>();

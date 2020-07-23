@@ -93,7 +93,8 @@ public class Main : MonoBehaviour
         GameObject o = new GameObject(msg.name);
         o.transform.SetParent(t);
         o.SetActive(msg.active);
-        o.AddComponent<DumpObj>().Init(msg.active, OnStateChange);
+        DumpObj dump = o.AddComponent<DumpObj>();
+        dump.Init(msg.active, OnStateChange, OnBehaviorChange);
 
         if (is_dont_destroy_onload)
         {
@@ -102,8 +103,26 @@ public class Main : MonoBehaviour
 
         foreach (var item in msg.list)
         {
-            CreateNode(o.transform, item, false);
+            if (item.is_component)
+            {
+                dump.AddComp(item.name, item.active);
+            }
+            else
+            {
+                CreateNode(o.transform, item, false);
+            }
         }
+    }
+
+    private void OnBehaviorChange(GameObject o, string name, bool active)
+    {
+        Node node = new Node() {
+            name = name,
+            active = active,
+            is_component = true
+        };
+
+        OnStateChange(o, node);
     }
 
     private void OnDestroy()
@@ -111,13 +130,16 @@ public class Main : MonoBehaviour
         _server?.Close();
     }
 
-    void OnStateChange(GameObject obj)
+    void OnStateChange(GameObject obj, Node component = null)
     {
         bool active_self = obj.activeSelf;
         List<Node> list_node = new List<Node>() {
             new Node(){
                 name = obj.name,
-                active = active_self
+                active = active_self,
+                list = component == null ? null : new List<Node>(){
+                    component
+                }
             }
         };
 
