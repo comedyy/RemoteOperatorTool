@@ -119,6 +119,7 @@ public class RemoteOperateClient : MonoBehaviour
         _instance = new GameObject().AddComponent<RemoteOperateClient>();
         _instance.name = "_____RemoteOperateClient_____";
         DontDestroyOnLoad(_instance);
+        _instance.gameObject.hideFlags = HideFlags.HideInHierarchy;
 
         return _instance;
     }

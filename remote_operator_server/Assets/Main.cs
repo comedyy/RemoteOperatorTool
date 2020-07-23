@@ -20,6 +20,7 @@ public class Main : MonoBehaviour
 
         gameObject.name = OBJ_NAME;
         DontDestroyOnLoad(gameObject);
+        gameObject.hideFlags = HideFlags.HideInHierarchy;
     }
 
     private void Update()
