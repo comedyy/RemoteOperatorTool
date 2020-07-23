@@ -80,6 +80,13 @@ public class NetWorkClient
                     _receive_list.Enqueue(bytes);
                 }
             }
+            else if (_byte_index == _bytes.Length)
+            {
+                byte[] bytes_old = _bytes;
+                _bytes = new byte[_bytes.Length * 2];
+                Array.Copy(bytes_old, 0, _bytes, 0, bytes_old.Length);
+                Debug.Log("expend buffer to " + _bytes.Length);
+            }
             else
             {
                 break;

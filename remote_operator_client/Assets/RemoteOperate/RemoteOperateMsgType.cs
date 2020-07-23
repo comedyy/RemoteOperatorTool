@@ -64,7 +64,7 @@ public class Msg
             }
 
             writer.Seek(0, SeekOrigin.Begin);
-            writer.Write((short)stream.Length);
+            writer.Write((int)stream.Length);
 
             return stream.ToArray();
         }

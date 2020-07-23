@@ -20,7 +20,7 @@ public class Main : MonoBehaviour
 
         gameObject.name = OBJ_NAME;
         DontDestroyOnLoad(gameObject);
-        gameObject.hideFlags = HideFlags.HideInHierarchy;
+        //gameObject.hideFlags = HideFlags.HideInHierarchy;
     }
 
     private void Update()
@@ -30,15 +30,9 @@ public class Main : MonoBehaviour
         {
             Msg msg = Msg.GenFromBytes(bytes);
 
-            Scene[] current_scenes = SceneManager.GetAllScenes();
             Scene temp_scene = SceneManager.LoadScene("SWITCH_SCENE", new LoadSceneParameters(){
                loadSceneMode = LoadSceneMode.Single
             } );
-
-            foreach (var item in current_scenes)
-            {
-                SceneManager.UnloadScene(item);
-            }
 
             GameObject[] dont_destroy_objects = gameObject.scene.GetRootGameObjects();
             foreach (var item in dont_destroy_objects)
@@ -65,11 +59,6 @@ public class Main : MonoBehaviour
 
     IEnumerator CreateSceneNode(Node msg)
     {
-        LoadSceneParameters param = new LoadSceneParameters()
-        {
-            loadSceneMode = LoadSceneMode.Additive
-        };
-
         bool is_dont_destroy_onload = msg.name == "DontDestroyOnLoad";
         if (!is_dont_destroy_onload)
         {
