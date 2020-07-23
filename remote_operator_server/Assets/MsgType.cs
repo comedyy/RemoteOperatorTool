@@ -43,7 +43,6 @@ public class Msg
 {
     public short msg_type;
 
-    public string sceneName;
     public List<Node> list;
 
     public byte[] ToBytes()
@@ -53,7 +52,6 @@ public class Msg
         {
             writer.Write(0); // size
             writer.Write(msg_type);
-            writer.Write(sceneName);
 
             int list_count = list != null ? list.Count : 0;
             writer.Write(list_count);
@@ -74,12 +72,9 @@ public class Msg
         MemoryStream stream = new MemoryStream(bytes);
         using (BinaryReader reader = new BinaryReader(stream))
         {
-
             Msg msg = new Msg();
             reader.ReadInt32();
             msg.msg_type = reader.ReadInt16();
-            msg.sceneName = reader.ReadString();
-
 
             int list_count = reader.ReadInt32();
             msg.list = new List<Node>();

@@ -31,20 +31,39 @@ public class RemoteOperateClient : MonoBehaviour
 
             Debug.Log("receive msg; node = " + GetFullPath(msg.list[0]));
 
-            Scene scene = SceneManager.GetActiveScene();
-            foreach (var item in msg.list)
+            foreach (var scene in msg.list)
             {
-                GameObject obj = scene.GetRootGameObjects().ToList().Where(m => m.name == item.name).FirstOrDefault();
-                if (obj)
+                List<GameObject> root_objs = FindRootObjs(scene);
+                foreach (var root_node in scene.list)
                 {
-                    SetNode(obj.transform, item);
-                }
-                else
-                {
-                    Debug.LogErrorFormat("obj not exist {0}", GetFullPath(item));
+                    GameObject obj = root_objs.Where(m => m.name == root_node.name).FirstOrDefault();
+
+                    if (obj)
+                    {
+                        SetNode(obj.transform, root_node);
+                    }
+                    else
+                    {
+                        Debug.LogErrorFormat("obj not exist {0}", GetFullPath(scene));
+                    }
                 }
             }
         }
+    }
+
+    private List<GameObject> FindRootObjs(Node node)
+    {
+        Scene scene;
+        if (node.name == "DontDestroyOnLoad")
+        {
+            scene = gameObject.scene;
+        }
+        else
+        {
+            scene = SceneManager.GetSceneByName(node.name);
+        }
+
+        return scene.GetRootGameObjects().ToList();
     }
 
     static string GetFullPath(Node node)
@@ -97,17 +116,38 @@ public class RemoteOperateClient : MonoBehaviour
     public IEnumerator SyncIenumerator() { 
         yield return new WaitUntil(()=> { return _client != null; });
 
+        List<Scene> lst_scene = new List<Scene>();
+        lst_scene.Add(gameObject.scene);
+        lst_scene.AddRange(SceneManager.GetAllScenes());
+
         Msg msg = new Msg();
-        Scene scene = SceneManager.GetActiveScene();
-        msg.sceneName = scene.name;
-        msg.list = new List<Node>(scene.rootCount);
-        GameObject[] roots = scene.GetRootGameObjects();
-        foreach (var item in roots)
+
+        msg.list = new List<Node>();
+        foreach (var item in lst_scene)
         {
-            msg.list.Add(GenNode(item.transform));
+            msg.list.Add(GenSceneNode(item));
         }
 
         _client.SendMsg(msg.ToBytes());
+    }
+
+    private Node GenSceneNode(Scene scene)
+    {
+        Node node = new Node() {
+            list = new List<Node>(),
+            name = scene.name
+        };
+
+        GameObject[] roots = scene.GetRootGameObjects();
+        foreach (var item in roots)
+        {
+            if (item != gameObject)
+            {
+                node.list.Add(GenNode(item.transform));
+            }
+        }
+
+        return node;
     }
 
     private Node GenNode(Transform item)

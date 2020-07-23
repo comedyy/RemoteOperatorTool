@@ -29,50 +29,80 @@ public class Main : MonoBehaviour
         {
             Msg msg = Msg.GenFromBytes(bytes);
 
-            //Debug.Log(msg.sceneName);
-            //Debug.Log(msg.msg_type);
-            //Debug.Log(msg.list.Count);
-            //Debug.Log(msg.list[0].name);
-            //Debug.Log(msg.list[0].list.Count);
-            //Debug.Log(msg.list[0].active);
+            Scene[] current_scenes = SceneManager.GetAllScenes();
+            Scene temp_scene = SceneManager.LoadScene("SWITCH_SCENE", new LoadSceneParameters(){
+               loadSceneMode = LoadSceneMode.Single
+            } );
 
-            //Debug.Log(msg.list[2].list[0].name);
-            //Debug.Log(msg.list[2].list[0].active);
-
-            //Debug.Log(msg.list[1].name);
-            //Debug.Log(msg.list[1].active);
-
-            //Debug.Log(msg.list[2].name);
-            //Debug.Log(msg.list[2].active);
-
-            // 1. delete all objs;
-            Scene[] scenes =  SceneManager.GetAllScenes();
-            foreach (var item in scenes)
+            foreach (var item in current_scenes)
             {
-                foreach (var obj in item.GetRootGameObjects())
+                SceneManager.UnloadScene(item);
+            }
+
+            GameObject[] dont_destroy_objects = gameObject.scene.GetRootGameObjects();
+            foreach (var item in dont_destroy_objects)
+            {
+                if (item != gameObject)
                 {
-                    GameObject.Destroy(obj);
+                    DestroyImmediate(item);
                 }
             }
 
-            Transform parent = null;
-            foreach (var item in msg.list)
-            {
-                CreateNode(parent, item);
-            }
+            StartCoroutine(CreateSceness(msg, temp_scene));
         }
     }
 
-    void CreateNode(Transform t, Node msg)
+    IEnumerator CreateSceness(Msg msg, Scene temp_scene)
+    {
+        foreach (var item in msg.list)
+        {
+            yield return CreateSceneNode(item);
+        }
+
+        SceneManager.UnloadScene(temp_scene);
+    }
+
+    IEnumerator CreateSceneNode(Node msg)
+    {
+        LoadSceneParameters param = new LoadSceneParameters()
+        {
+            loadSceneMode = LoadSceneMode.Additive
+        };
+
+        bool is_dont_destroy_onload = msg.name == "DontDestroyOnLoad";
+        if (!is_dont_destroy_onload)
+        {
+            Scene scene = SceneManager.CreateScene(msg.name, new CreateSceneParameters()
+            {
+                localPhysicsMode = LocalPhysicsMode.None
+            });
+
+            yield return null;
+            SceneManager.SetActiveScene(scene);
+        }
+
+        Transform parent = null;
+        foreach (var item in msg.list)
+        {
+            CreateNode(parent, item, is_dont_destroy_onload);
+        }
+    }
+
+    void CreateNode(Transform t, Node msg, bool is_dont_destroy_onload)
     {
         GameObject o = new GameObject(msg.name);
         o.transform.SetParent(t);
         o.SetActive(msg.active);
         o.AddComponent<DumpObj>().Init(msg.active, OnStateChange);
 
+        if (is_dont_destroy_onload)
+        {
+            DontDestroyOnLoad(o);
+        }
+
         foreach (var item in msg.list)
         {
-            CreateNode(o.transform, item);
+            CreateNode(o.transform, item, false);
         }
     }
 
@@ -106,8 +136,12 @@ public class Main : MonoBehaviour
         }
 
         Msg msg = new Msg();
-        msg.sceneName = "";
-        msg.list = new List<Node>() { list_node[list_node.Count - 1] };
+        msg.list = new List<Node>() {
+            new Node(){
+                name = obj.scene.name, 
+                list = new List<Node>(){ list_node[list_node.Count - 1] }
+            }
+        };
 
         _server.SendMsg(msg.ToBytes());
         Debug.Log("send msg; node = " + GetFullPath(msg.list[0]));
