@@ -96,7 +96,16 @@ public class RemoteOperateClient : MonoBehaviour
             }
             else
             {
-                Transform trans = t.Find(item.name);
+                Transform trans = null;
+                for (int i = 0; i < t.childCount; i++)
+                {
+                    Transform child = t.GetChild(i);
+                    if (child.name == item.name)
+                    {
+                        trans = child;
+                    }
+                }
+
                 if (trans)
                 {
                     SetNode(trans, item);
