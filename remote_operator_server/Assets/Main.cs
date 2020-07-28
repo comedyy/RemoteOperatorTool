@@ -127,6 +127,7 @@ public class Main : MonoBehaviour
             new Node(){
                 name = obj.name,
                 active = active_self,
+                child_index_of_parent = obj.transform.GetSiblingIndex(),
                 list = component == null ? null : new List<Node>(){
                     component
                 }
@@ -139,6 +140,7 @@ public class Main : MonoBehaviour
             list_node.Add(new Node() {
                 name = parent.name,
                 active = parent.gameObject.activeSelf,
+                child_index_of_parent = parent.transform.GetSiblingIndex(),
                 list = new List<Node>() {
                     list_node[list_node.Count - 1]
                 }

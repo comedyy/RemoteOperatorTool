@@ -6,6 +6,7 @@ using UnityEngine;
 public class Node
 {
     public string name;
+    public int child_index_of_parent;
     public bool active;
     public List<Node> list;
     public bool is_component;
@@ -15,6 +16,7 @@ public class Node
         writer.Write(name);
         writer.Write(active);
         writer.Write(is_component);
+        writer.Write(child_index_of_parent);
 
         int list_count = list != null ? list.Count : 0;
         writer.Write(list_count);
@@ -30,6 +32,7 @@ public class Node
         node.name = reader.ReadString();
         node.active = reader.ReadBoolean();
         node.is_component = reader.ReadBoolean();
+        node.child_index_of_parent = reader.ReadInt32();
 
         int list_count = reader.ReadInt32();
         node.list = new List<Node>();

@@ -97,13 +97,10 @@ public class RemoteOperateClient : MonoBehaviour
             else
             {
                 Transform trans = null;
-                for (int i = 0; i < t.childCount; i++)
+                Transform child = t.GetChild(item.child_index_of_parent);
+                if (child.name == item.name)
                 {
-                    Transform child = t.GetChild(i);
-                    if (child.name == item.name)
-                    {
-                        trans = child;
-                    }
+                    trans = child;
                 }
 
                 if (trans)
